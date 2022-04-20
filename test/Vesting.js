@@ -167,15 +167,17 @@ describe("Vesting", () => {
         ).to.not.equal(ownerBalanceBefore);
     });
 
-    it("Send unclaimed tokens of removed beneficiary after vesting starts to owner", async () => {
+    it("Sends unclaimed tokens of removed beneficiary after vesting starts to owner", async () => {
         await vesting.addPartner(owner.address);
         await vesting.addPartner(beneficiary1.address);
         await vesting.startVesting();
         await ethers.provider.send("evm_increaseTime", [cliffTimeInSeconds]);
 
+        const ownerBalanceBefore = await blazeToken.balanceOf(owner.address);
+        await vesting.removeBeneficiary(beneficiary1.address);
         expect(
-            await vesting.removeBeneficiary(beneficiary1.address)
-        ).to.be.emit(Vesting, "IERC20_Claime");
-    })
+            await blazeToken.balanceOf(owner.address)
+        ).to.not.equal(ownerBalanceBefore);
+    });
 
 }); 
