@@ -1,22 +1,22 @@
 const { ethers } = require("hardhat");
+require('dotenv').config();
+
 
 async function main() {
     const BlazeToken = await ethers.getContractFactory("BlazeToken");
     const Vesting = await ethers.getContractFactory("Vesting");
 
-     // Token Supply of 5 billion tokens.
-    const totalSupply = 5 * 10**9;
-    // Vest 30% tokens => 1.5 billion tokens.
-    const tokensToVest = (30 / 100) * totalSupply;
-    const tokenName = "BlazeToken";
-    const tokenSymbol = "BLZ";
+    const totalSupply = process.env.TOTAL_SUPPLY;
+    const tokensToVest = (process.env.TOKEN_PERCENTAGE_TO_VEST / 100) * totalSupply;
+    const tokenName = process.env.TOKEN_NAME;
+    const tokenSymbol = process.env.TOKEN_SYMBOL;
 
-    const cliffTimeInSeconds = 1000;
-    const vestingTimeInSeconds = 10000;
+    const cliffTimeInSeconds = process.env.CLIFF_TIME_IN_SECONDS;
+    const vestingTimeInSeconds = process.env.VESTING_TIME_IN_SECONDS;
 
-    const tokensForAdvisors = (35/100) * tokensToVest;
-    const tokensForPartners = (50/100) * tokensToVest;
-    const tokensForMentors = (15/100) * tokensToVest;
+    const tokensForAdvisors = (process.env.VESTED_TOKENS_PERCENTAGE_FOR_ADVISORS/100) * tokensToVest;
+    const tokensForPartners = (process.env.VESTED_TOKENS_PERCENTAGE_FOR_PARTNERS/100) * tokensToVest;
+    const tokensForMentors = (process.env.VESTED_TOKENS_PERCENTAGE_FOR_MENTORS/100) * tokensToVest;
     
     // Deploy ERC20 token.
     const blazeToken = await BlazeToken.deploy(
@@ -34,9 +34,9 @@ async function main() {
         blazeToken.address,
         cliffTimeInSeconds,
         vestingTimeInSeconds,
-        ethers.utils.parseUnits(`${tokensForAdvisors}`, tokenDecimals),//tokensForAdvisors * 10**tokenDecimals,
-        ethers.utils.parseUnits(`${tokensForPartners}`, tokenDecimals),//tokensForPartners* 10**tokenDecimals,
-        ethers.utils.parseUnits(`${tokensForMentors}`, tokenDecimals),//tokensForMentors* 10**tokenDecimals
+        ethers.utils.parseUnits(`${tokensForAdvisors}`, tokenDecimals),
+        ethers.utils.parseUnits(`${tokensForPartners}`, tokenDecimals),
+        ethers.utils.parseUnits(`${tokensForMentors}`, tokenDecimals),
     );
     await vesting.deployed();
     console.log("Vesting contract deployed at: ", vesting.address);
