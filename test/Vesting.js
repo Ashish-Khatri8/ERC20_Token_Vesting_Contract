@@ -12,6 +12,7 @@ describe("Vesting", () => {
     let Vesting;
     let vesting;
     let tokenDecimals;
+    let remainingTokens;
 
     const totalSupply = 5 * 10**9;
     const tokensToVest = (30/100) * totalSupply;
@@ -64,7 +65,7 @@ describe("Vesting", () => {
 
     it("Owner has the remaining tokens", async () => {
         const ownerBalance = await blazeToken.balanceOf(owner.address);
-        const remainingTokens = totalSupply - tokensToVest;
+        remainingTokens = totalSupply - tokensToVest;
         expect(ownerBalance).to.equal(ethers.utils.parseUnits(`${remainingTokens}`, tokenDecimals));
     });
 
@@ -118,4 +119,63 @@ describe("Vesting", () => {
         ).to.be.revertedWith("Null address cannot be a beneficiary!");
     });
 
-});
+    it("Owner can start the vesting", async () => {
+        await vesting.startVesting();
+        expect(vesting.startVesting()).to.be.revertedWith("Vesting has already started!");
+    });
+
+    it("Cannot add a beneficiary after vesting starts", async () => {
+        await vesting.startVesting();
+        expect(
+            vesting.addAdvisor(beneficiary1)
+        ).to.be.revertedWith("Vesting has started! Cannot add a beneficiary now!");
+    });
+
+    it("Cannot claim tokens before vesting starts", async () => {
+        expect(vesting.claimTokens()).to.be.revertedWith("Vesting has not started yet!");
+    });
+
+    it("Cannot claim tokens during cliff period", async () => {
+        await vesting.startVesting();
+        expect(
+            vesting.claimTokens()
+        ).to.be.revertedWith("Vesting is in cliff period! No tokens would be released.");
+    });
+
+    it("Distributes tokens correctly among beneficiaries", async () => {
+        await vesting.addPartner(beneficiary1.address);
+        await vesting.addPartner(beneficiary2.address);
+        await vesting.startVesting();
+
+        const totalPartners = await vesting.totalPartners();
+        const tokensPerPartner = await ethers.utils.parseUnits(`${tokensForPartners/totalPartners}`, tokenDecimals);
+        expect(tokensPerPartner).to.equal(await vesting.perPartnerTokens());
+    });
+
+    it("Beneficiary can claim tokens after cliff period", async () => {
+        await vesting.addPartner(owner.address);
+        await vesting.addPartner(beneficiary1.address);
+        await vesting.addPartner(beneficiary2.address);
+        await vesting.startVesting();
+
+        const ownerBalanceBefore = await blazeToken.balanceOf(owner.address);
+        await ethers.provider.send("evm_increaseTime", [cliffTimeInSeconds + vestingTimeInSeconds]);
+
+        expect(vesting.claimTokens()).to.be.emit("Vesting", "IERC20_Claimed");
+        expect(
+            await blazeToken.balanceOf(owner.address)
+        ).to.not.equal(ownerBalanceBefore);
+    });
+
+    it("Send unclaimed tokens of removed beneficiary after vesting starts to owner", async () => {
+        await vesting.addPartner(owner.address);
+        await vesting.addPartner(beneficiary1.address);
+        await vesting.startVesting();
+        await ethers.provider.send("evm_increaseTime", [cliffTimeInSeconds]);
+
+        expect(
+            await vesting.removeBeneficiary(beneficiary1.address)
+        ).to.be.emit(Vesting, "IERC20_Claime");
+    })
+
+}); 
