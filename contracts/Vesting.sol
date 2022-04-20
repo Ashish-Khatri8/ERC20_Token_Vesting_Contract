@@ -3,8 +3,17 @@ pragma solidity >=0.8.1;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Vesting is Ownable {
+
+    using SafeERC20 for IERC20;
+    IERC20 private token;
+
+    uint256 private immutable cliffPeriod;
+    uint256 private immutable vestingPeriod;
+    uint256 public vestingStartTime;
+    bool private hasVestingStarted;
 
     enum Roles { Advisor, Partner, Mentor }
     Roles private role;
@@ -39,11 +48,6 @@ contract Vesting is Ownable {
 
     event VestingStarted(uint256 indexed time);
 
-    IERC20 private token;
-    uint256 private immutable cliffPeriod;
-    uint256 private immutable vestingPeriod;
-    uint256 public vestingStartTime;
-    bool private hasVestingStarted;
 
     constructor(
         IERC20 _token,
@@ -84,7 +88,7 @@ contract Vesting is Ownable {
         require(
             beneficiaries[msg.sender].totalTokensClaimed < 
             tokensPerBeneficiaryOfRole[beneficiaries[msg.sender].role],
-            "You have claimed all the vested tokens!"
+            "You have claimed all of your vested tokens!"
         );
 
         uint256 tokensToClaim = getAvailableTokens(msg.sender);
