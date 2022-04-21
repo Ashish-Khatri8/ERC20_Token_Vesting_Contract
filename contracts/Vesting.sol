@@ -98,22 +98,31 @@ contract Vesting is Ownable {
         emit IERC20_Claimed(msg.sender, tokensToClaim);
     }
 
-    function addMentor(address _addr) external onlyOwner {
-        addBeneficiary(_addr, Roles.Mentor);
-    }
+    function addBeneficiary(address _addr, Roles _role) external onlyOwner {
+        require(
+            beneficiaries[_addr].isBeneficiary != true,
+            "Given address is already a beneficiary!"
+        );
+        require(
+            _addr != address(0),
+            "Null address cannot be a beneficiary!"
+        );
+        require(
+            !hasVestingStarted,
+            "Vesting has started! Cannot add a beneficiary now!"
+        );
 
-    function addAdvisor(address _addr) external onlyOwner {
-        addBeneficiary(_addr, Roles.Advisor);
-    }
+        beneficiaries[_addr].isBeneficiary = true;
+        beneficiaries[_addr].role = _role;
+        totalBeneficiariesWithRole[_role] += 1;
 
-    function addPartner(address _addr) external onlyOwner {
-        addBeneficiary(_addr, Roles.Partner);
+        emit AddBeneficiary(_addr, _role, block.timestamp);
     }
 
     function removeBeneficiary(address _addr) external onlyOwner {
         require(
             beneficiaries[_addr].isBeneficiary,
-            "You are not a beneficiary!"
+            "Not a beneficiary!"
         );
         Roles beneficiaryRole = beneficiaries[_addr].role;
 
@@ -163,27 +172,6 @@ contract Vesting is Ownable {
 
     function totalPartners() external view onlyOwner returns(uint256) {
         return totalBeneficiariesWithRole[Roles.Partner];
-    }
-
-    function addBeneficiary(address _addr, Roles _role) private {
-        require(
-            beneficiaries[_addr].isBeneficiary != true,
-            "Given address is already a beneficiary!"
-        );
-        require(
-            _addr != address(0),
-            "Null address cannot be a beneficiary!"
-        );
-        require(
-            !hasVestingStarted,
-            "Vesting has started! Cannot add a beneficiary now!"
-        );
-
-        beneficiaries[_addr].isBeneficiary = true;
-        beneficiaries[_addr].role = _role;
-        totalBeneficiariesWithRole[_role] += 1;
-
-        emit AddBeneficiary(_addr, _role, block.timestamp);
     }
 
     function calculatePerBeneficiaryTokens() private {
