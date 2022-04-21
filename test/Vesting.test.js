@@ -70,52 +70,52 @@ describe("Vesting", () => {
     });
 
     it("Can add partners", async () => {
-        await vesting.addPartner(beneficiary1.address);
-        await vesting.addPartner(beneficiary2.address);
-        await vesting.addPartner(beneficiary3.address);
-        expect(await vesting.totalPartners()).to.equal(3);
+        await vesting.addBeneficiary(beneficiary1.address, 1);
+        await vesting.addBeneficiary(beneficiary2.address, 1);
+        await vesting.addBeneficiary(beneficiary3.address, 1);
+        expect(await vesting.beneficiariesWithRole(1)).to.equal(3);
     });
 
     it("Can add advisors", async () => {
-        await vesting.addAdvisor(beneficiary1.address);
-        await vesting.addAdvisor(beneficiary2.address);
-        expect(await vesting.totalAdvisors()).to.equal(2);
+        await vesting.addBeneficiary(beneficiary1.address, 0);
+        await vesting.addBeneficiary(beneficiary2.address, 0);
+        expect(await vesting.beneficiariesWithRole(0)).to.equal(2);
     });
 
     it("Can add mentors", async () => {
-        await vesting.addMentor(owner.address);
-        await vesting.addMentor(beneficiary1.address);
-        await vesting.addMentor(beneficiary2.address);
-        await vesting.addMentor(beneficiary3.address);
-        expect(await vesting.totalMentors()).to.equal(4);
+        await vesting.addBeneficiary(owner.address, 2);
+        await vesting.addBeneficiary(beneficiary1.address, 2);
+        await vesting.addBeneficiary(beneficiary2.address, 2);
+        await vesting.addBeneficiary(beneficiary3.address, 2);
+        expect(await vesting.beneficiariesWithRole(2)).to.equal(4);
     });
 
     it("Can remove beneficiary", async () => {
-        await vesting.addPartner(beneficiary1.address);
-        await vesting.addPartner(beneficiary2.address);
-        expect(await vesting.totalPartners()).to.equal(2);
+        await vesting.addBeneficiary(beneficiary1.address, 0);
+        await vesting.addBeneficiary(beneficiary2.address, 0);
+        expect(await vesting.beneficiariesWithRole(0)).to.equal(2);
         await vesting.removeBeneficiary(beneficiary2.address);
-        expect(await vesting.totalPartners()).to.equal(1);
+        expect(await vesting.beneficiariesWithRole(0)).to.equal(1);
     });
 
     it("Cannot add duplicate beneficiary", async () => {
-        await vesting.addPartner(beneficiary1.address);
-        await vesting.addPartner(beneficiary2.address);
-        expect(await vesting.totalPartners()).to.equal(2);
+        await vesting.addBeneficiary(beneficiary1.address, 1);
+        await vesting.addBeneficiary(beneficiary2.address, 1);
+        expect(await vesting.beneficiariesWithRole(1)).to.equal(2);
         expect(
-            vesting.addPartner(beneficiary2.address)
+            vesting.addBeneficiary(beneficiary2.address, 0)
         ).to.be.revertedWith("Given address is already a beneficiary!");
         expect(
-            vesting.addMentor(beneficiary2.address)
+            vesting.addBeneficiary(beneficiary2.address, 1)
         ).to.be.revertedWith("Given address is already a beneficiary!");
         expect(
-            vesting.addAdvisor(beneficiary2.address)
+            vesting.addBeneficiary(beneficiary2.address, 2)
         ).to.be.revertedWith("Given address is already a beneficiary!");
     });
 
     it("Cannot add null address as a beneficiary", async () => {
         expect(
-            vesting.addPartner("0x0000000000000000000000000000000000000000")
+            vesting.addBeneficiary("0x0000000000000000000000000000000000000000", 2)
         ).to.be.revertedWith("Null address cannot be a beneficiary!");
     });
 
@@ -127,7 +127,7 @@ describe("Vesting", () => {
     it("Cannot add a beneficiary after vesting starts", async () => {
         await vesting.startVesting();
         expect(
-            vesting.addAdvisor(beneficiary1)
+            vesting.addBeneficiary(beneficiary1, 0)
         ).to.be.revertedWith("Vesting has started! Cannot add a beneficiary now!");
     });
 
@@ -143,19 +143,19 @@ describe("Vesting", () => {
     });
 
     it("Distributes tokens correctly among beneficiaries", async () => {
-        await vesting.addPartner(beneficiary1.address);
-        await vesting.addPartner(beneficiary2.address);
+        await vesting.addBeneficiary(beneficiary1.address, 1);
+        await vesting.addBeneficiary(beneficiary2.address, 1);
         await vesting.startVesting();
 
-        const totalPartners = await vesting.totalPartners();
+        const totalPartners = await vesting.beneficiariesWithRole(1);
         const tokensPerPartner = await ethers.utils.parseUnits(`${tokensForPartners/totalPartners}`, tokenDecimals);
-        expect(tokensPerPartner).to.equal(await vesting.perPartnerTokens());
+        expect(tokensPerPartner).to.equal(await vesting.perBeneficiaryTokens(1));
     });
 
     it("Beneficiary can claim tokens after cliff period", async () => {
-        await vesting.addPartner(owner.address);
-        await vesting.addPartner(beneficiary1.address);
-        await vesting.addPartner(beneficiary2.address);
+        await vesting.addBeneficiary(owner.address, 1);
+        await vesting.addBeneficiary(beneficiary1.address, 1);
+        await vesting.addBeneficiary(beneficiary2.address, 1);
         await vesting.startVesting();
 
         const ownerBalanceBefore = await blazeToken.balanceOf(owner.address);
@@ -168,8 +168,8 @@ describe("Vesting", () => {
     });
 
     it("Sends unclaimed tokens of removed beneficiary after vesting starts to owner", async () => {
-        await vesting.addPartner(owner.address);
-        await vesting.addPartner(beneficiary1.address);
+        await vesting.addBeneficiary(owner.address, 1);
+        await vesting.addBeneficiary(beneficiary1.address, 1);
         await vesting.startVesting();
         await ethers.provider.send("evm_increaseTime", [cliffTimeInSeconds]);
 
