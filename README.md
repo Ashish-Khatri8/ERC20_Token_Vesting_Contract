@@ -9,9 +9,9 @@ This contract deploys an ERC20 token with the following details.
 - Decimals: 18
 - Total Supply: 5 billion => 5 * 10**9 => 5000000000
 
-- Contract deployed on [rinkeby test network](https://rinkeby.etherscan.io/address/0x8a52C79792391522F8A0994B0BD3D4adA5d10188) at:
+- Contract deployed on [rinkeby test network](https://rinkeby.etherscan.io/address/0x7C6d95a62964D56bbAf6C8Cad52ED4CBa2c5bBDf) at:
 
-> 0x8a52C79792391522F8A0994B0BD3D4adA5d10188
+> 0x7C6d95a62964D56bbAf6C8Cad52ED4CBa2c5bBDf
 
 30% of total supply => 1.5 billion tokens are sent to the vesting contract in order to be vested for Advisors, Mentors and Partners.
 
@@ -19,9 +19,9 @@ This contract deploys an ERC20 token with the following details.
 
 This contract vests the tokens received for a linear vesting schedule with a cliff period for different roles.
 
-- Contract deployed on [rinkeby test network](https://rinkeby.etherscan.io/address/0x1aF0cC4cAB2747f1BCf6EFacF15f59fcFf556138) at:
+- Contract deployed on [rinkeby test network](https://rinkeby.etherscan.io/address/0x09a40bf663686037Ba2329DCE8e569DA4e59F9C8) at:
 
->0x1aF0cC4cAB2747f1BCf6EFacF15f59fcFf556138
+> 0x09a40bf663686037Ba2329DCE8e569DA4e59F9C8
 
 - Roles: Partner, Advisor, Mentor
 
