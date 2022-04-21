@@ -9,7 +9,7 @@ This contract deploys an ERC20 token with the following details.
 - Decimals: 18
 - Total Supply: 5 billion => 5 * 10**9 => 5000000000
 
-- Contract deployed on rinkeby test network at:
+- Contract deployed on [rinkeby test network](https://rinkeby.etherscan.io/address/0x8a52C79792391522F8A0994B0BD3D4adA5d10188) at:
 
 > 0x8a52C79792391522F8A0994B0BD3D4adA5d10188
 
@@ -19,7 +19,7 @@ This contract deploys an ERC20 token with the following details.
 
 This contract vests the tokens received for a linear vesting schedule with a cliff period for different roles.
 
-- Contract deployed on rinkeby test network at:
+- Contract deployed on [rinkeby test network](https://rinkeby.etherscan.io/address/0x1aF0cC4cAB2747f1BCf6EFacF15f59fcFf556138) at:
 
 >0x1aF0cC4cAB2747f1BCf6EFacF15f59fcFf556138
 
