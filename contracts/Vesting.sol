@@ -100,10 +100,10 @@ contract Vesting is Ownable {
         );
 
         uint256 tokensToClaim = getAvailableTokens(msg.sender);
-        token.transfer(msg.sender, tokensToClaim);
         beneficiaries[msg.sender].totalTokensClaimed += tokensToClaim;
 
         emit IERC20_Claimed(msg.sender, tokensToClaim);
+        token.safeTransfer(msg.sender, tokensToClaim);
     }
 
     function addBeneficiary(address _addr, Roles _role) external onlyOwner {
@@ -144,8 +144,8 @@ contract Vesting is Ownable {
             uint256 claimedTokens = beneficiaries[_addr].totalTokensClaimed;
             uint256 unclaimedTokens =  tokensPerBeneficiaryOfRole[beneficiaryRole] - claimedTokens;
             if (unclaimedTokens > 0) {
-                token.transfer(owner(), unclaimedTokens);
                 emit IERC20_Claimed(owner(), unclaimedTokens);
+                token.safeTransfer(owner(), unclaimedTokens);
             }
         }
     }
