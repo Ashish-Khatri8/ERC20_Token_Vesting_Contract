@@ -9,6 +9,7 @@ contract Vesting is Ownable {
 
     using SafeERC20 for IERC20;
     IERC20 private token;
+    uint256 private totalVestedTokens;
 
     uint256 private immutable cliffPeriod;
     uint256 private immutable vestingPeriod;
@@ -64,6 +65,8 @@ contract Vesting is Ownable {
         totalTokensForRole[Roles.Advisor] = _tokensForAdvisors;
         totalTokensForRole[Roles.Partner] = _tokensForPartners;
         totalTokensForRole[Roles.Mentor] = _tokensForMentors;
+
+        totalVestedTokens = _tokensForAdvisors + _tokensForPartners + _tokensForMentors;
     }
 
     function startVesting() external onlyOwner {
@@ -71,6 +74,11 @@ contract Vesting is Ownable {
             !hasVestingStarted,
             "Vesting has already started!"
         );
+        require(
+            token.balanceOf(address(this)) >= totalVestedTokens,
+            "Contract does not have sufficient tokens to start vesting!"
+        );
+
         hasVestingStarted = true;
         uint256 time = block.timestamp;
         vestingStartTime = time;
@@ -150,28 +158,12 @@ contract Vesting is Ownable {
         return beneficiaries[_addr].totalTokensClaimed;
     }
 
-    function perAdvisorTokens() external view onlyOwner returns(uint256) {
-        return tokensPerBeneficiaryOfRole[Roles.Advisor];
+    function perBeneficiaryTokens(Roles _role) external view onlyOwner returns(uint256) {
+        return tokensPerBeneficiaryOfRole[_role];
     }
 
-    function perMentorTokens() external view onlyOwner returns(uint256) {
-        return tokensPerBeneficiaryOfRole[Roles.Mentor];
-    }
-
-    function perPartnerTokens() external view onlyOwner returns(uint256) {
-        return tokensPerBeneficiaryOfRole[Roles.Partner];
-    }
-
-    function totalAdvisors() external view onlyOwner returns(uint256) {
-        return totalBeneficiariesWithRole[Roles.Advisor];
-    }
-
-    function totalMentors() external view onlyOwner returns(uint256) {
-        return totalBeneficiariesWithRole[Roles.Mentor];
-    }
-
-    function totalPartners() external view onlyOwner returns(uint256) {
-        return totalBeneficiariesWithRole[Roles.Partner];
+    function beneficiariesWithRole(Roles _role) external view onlyOwner returns(uint256) {
+        return totalBeneficiariesWithRole[_role];
     }
 
     function calculatePerBeneficiaryTokens() private {
